@@ -1,26 +1,37 @@
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2');
-const bcrypt = require('bcryptjs');
+require('dotenv').config(); // load .env variables
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'mobileproducts'
+// Create a connection pool
+const db = mysql.createPool({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,   // adjust based on load
+   // if using TiDB Cloud
 });
 
+console.log('connection successfu,ly')
+// Test the pool
 
-db.connect(err => {
-    if (err) {
-        console.error('Error connecting to the database:', err);
-        return;
-    }
-    console.log('Connected to MySQL database.');
+
+// Example route
+app.get('/products', (req, res) => {
+    pool.query('SELECT * FROM products', (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Database query failed' });
+        }
+        res.json(results);
+    });
 });
 
 
@@ -76,6 +87,6 @@ app.delete('/products/:id', (req, res) => {
 });
 
 // Start server
-app.listen(5000, '0.0.0.0', () => {
-    console.log('Server is running on port 5000');
+app.listen(3000, () => {
+    console.log('Server running on port 3000');
 });
